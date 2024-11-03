@@ -2,7 +2,10 @@
 
 シンプルな横スクロールシューティングゲームです。プレイヤー操作の飛行機で、右から出現する敵機を撃墜しましょう！敵機に衝突するとゲームオーバーです。スコアは生存時間と撃墜数で計算されます。
 
-[デモ動画](https://github.com/user-attachments/assets/55b53418-fbea-4c79-92ec-195e477add8f)
+## デモ動画
+![デモ動画](https://github.com/user-attachments/assets/55b53418-fbea-4c79-92ec-195e477add8f)
+
+
 
 ## 操作方法
 
