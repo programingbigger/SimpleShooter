@@ -23,7 +23,7 @@
    ```bash
    git clone https://github.com/programingbigger/SimpleShooter.git
    ```
-
+ss
    ```
    cd SIMPLESHOOTER
    ```
@@ -31,7 +31,11 @@
 2. 仮想環境の作成
    ```bash
    python3 -m venv .venv
+   ```
+   ```bash
    . .venv/bin/activate  # (Linux/macOS)
+   ```
+   ```bash
    .venv\Scripts\activate  # (Windows)
    ```
 
