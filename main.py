@@ -3,12 +3,15 @@ import random
 import arcade.key
 from game.components import FlyingSprite
 from game.components import Bullet
+from utils.config import config
 
 # 初期変数
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "SimpoleShooter"
 SCALING = 0.1
+FONT_ENGLISH = config["font_name"]["en"]
+FONT_JAPANESE = config["font_name"]["ja"]
 
 class StartView(arcade.View):
     def on_show_view(self):
@@ -16,14 +19,31 @@ class StartView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        arcade.draw_text("Instructions Screen"
+        arcade.draw_text("Shooters"
                         , SCREEN_WIDTH / 2
-                        , SCREEN_HEIGHT / 2
-                        ,arcade.color.BLACK, font_size=50, anchor_x="center")
-        arcade.draw_text("Click to advance"
-                        , SCREEN_WIDTH / 2
-                        , SCREEN_HEIGHT / 2 - 75,arcade.color.GRAY
-                        , font_size=20, anchor_x="center")
+                        , SCREEN_HEIGHT / 2 + 100
+                        ,arcade.color.BLACK
+                        , font_size=50
+                        , anchor_x="center"
+                        , font_name = FONT_ENGLISH)
+# 説明文を描画 (複数行対応)
+        instructions = [
+            "Q: ゲームを終了します",
+            "P: ゲームを一時停止/一時停止解除します",
+            "I/J/K/L または 矢印キー: 上、左、下、右に移動します",
+            "SPACE: 弾丸を発射します",
+            "クリックしてゲーム開始"
+        ]
+        y_position = SCREEN_HEIGHT / 2 - 30
+        for line in instructions:
+            arcade.draw_text(line
+                            , SCREEN_WIDTH / 2
+                            , y_position
+                            , arcade.color.BLACK
+                            , font_size=15
+                            , anchor_x="center"
+                            , font_name=FONT_JAPANESE)
+            y_position -= 30
 
     def on_mouse_press(self, _x, _y, _button, _modifiers):
         game_view = Shooter()
@@ -59,9 +79,8 @@ class Shooter(arcade.View):
         self.player.left = 10 # スプライトの左端をウィンドウの左端から数ピクセル離して配置することで、スプライトの x 位置を設定
         self.all_sprites.append(self.player)
         
-        # 敵が出てくるスパン
+        # スプライトが出てくるスパン
         arcade.schedule(self.add_enemy, 0.25)
-        # 雲が出てくるスパン
         arcade.schedule(self.add_cloud, 0.5)
     
     # 敵ユニットの作成
@@ -79,8 +98,8 @@ class Shooter(arcade.View):
     # 雲の作成
     def add_cloud(self, delta_time: float):
         # cloudの定義
-        cloud = FlyingSprite("images/cloud.png", SCALING*2)
-        cloud.center_x = random.randint(self.width-80, self.width)
+        cloud = FlyingSprite("images/cloud.png", SCALING*2.3)
+        cloud.center_x = random.randint(80, self.width)
         cloud.center_y = random.randint(self.height-500, self.height)
         cloud.velocity = (random.randint(-3, -2), 0)
         
@@ -211,9 +230,28 @@ class GameOverView(arcade.View):
         """
         "Game over"を画面に描画します。
         """
-        arcade.draw_text("Game Over", SCREEN_WIDTH/2, SCREEN_WIDTH/2, arcade.color.WHITE, 54)
-        arcade.draw_text("press R/r restart", SCREEN_WIDTH/2, 300, arcade.color.WHITE, 24)
-        arcade.draw_text("press Q/q game close", SCREEN_WIDTH/2, 250, arcade.color.WHITE, 20)
+        arcade.draw_text("Game Over"
+                , SCREEN_WIDTH / 2
+                , SCREEN_HEIGHT / 2 + 100
+                ,arcade.color.BLACK
+                , font_size=50
+                , anchor_x="center"
+                , font_name = FONT_ENGLISH)
+        
+        instructions = [
+            "R/rキーを押してゲームを再開します",
+            "Q/qキーを押してゲームを終了します",
+        ]
+        y_position = SCREEN_HEIGHT / 2 - 50
+        for line in instructions:
+            arcade.draw_text(line
+                            , SCREEN_WIDTH / 2
+                            , y_position
+                            , arcade.color.WHITE
+                            , 24
+                            , anchor_x="center"
+                            , font_name=FONT_JAPANESE)
+            y_position -= 40
 
     def on_key_release(self, symbol:int, modifiers:int):
         """
