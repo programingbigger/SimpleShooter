@@ -1,52 +1,36 @@
 import arcade
 import random
-
 import arcade.key
-import arcade.key
+from game.components import FlyingSprite
+from game.components import Bullet
 
 # 初期変数
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Simpole game"
+SCREEN_TITLE = "SimpoleShooter"
 SCALING = 0.1
 
-"""
-オブジェクトを表示させたい場合は、splitelistを作成して、
-on_updateとon_drawの関数を定義し、run関数で実行する
-↓
-on_update ⇨ on_drawが繰り返される
-"""
+class StartView(arcade.View):
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.SKY_BLUE)
 
-class FlyingSprite(arcade.Sprite):
-    """すべての飛行スプライトの基本クラス
-    飛行スプライトには、敵と雲が含まれます
-    """
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("Instructions Screen"
+                        , SCREEN_WIDTH / 2
+                        , SCREEN_HEIGHT / 2
+                        ,arcade.color.BLACK, font_size=50, anchor_x="center")
+        arcade.draw_text("Click to advance"
+                        , SCREEN_WIDTH / 2
+                        , SCREEN_HEIGHT / 2 - 75,arcade.color.GRAY
+                        , font_size=20, anchor_x="center")
 
-    def update(self):
-        """スプライトの位置を更新する
-        画面外に移動したら削除する
-        """
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        game_view = Shooter()
+        game_view.setup()
+        self.window.show_view(game_view)
 
-        # Move the sprite
-        super().update()
-
-        # 画面外を外れたら、spliteのリストから削除する。これをすることによって、メモリを削減できる
-        if self.right < 0:
-            self.remove_from_sprite_lists()
-            
-
-
-# 弾丸用のスプライト
-class Bullet(arcade.Sprite):
-    def update(self):
-        """
-        画面外に出たら削除
-        """
-        super().update()
-        if self.left > SCREEN_WIDTH: # 画面のleft⇨x軸だから、bulletのx軸が一番端のスクリーンから出たら、そのスプライトを削除する
-            self.remove_from_sprite_lists()
-
-class SpaceShoter(arcade.Window):
+class Shooter(arcade.View):
     """
     横スクロール型のスペースシューターゲーム
 
@@ -55,91 +39,55 @@ class SpaceShoter(arcade.Window):
     敵は様々な速度で左へ飛行します。
     衝突するとゲームオーバーになります。
     """
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
-        # 空のスプライトリストを初期化します
-        """
-        スプライト：画面上の特定の位置に描画される、定義されたサイズのゲーム オブジェクトの 2 次元画像
-        本当はdraw_コマンドでも描画できるが、多くなるため、スプライトリストを使う
-        
-        アプデと更新は、.update() ⇨ .draw()
-        
-        enemies_list:敵の位置を更新し、衝突を確認するために使用します。
-        clouds_listクラウドの位置を更新するために使用します。
-        最後に、 all_spritesすべてを描きます。
-        """
+    def __init__(self, height=SCREEN_HEIGHT, width=SCREEN_WIDTH):
+        super().__init__()
         self.enemies_list = arcade.SpriteList()  # 敵のスプライトリスト
         self.clouds_list = arcade.SpriteList()  # 雲のスプライトリスト
         self.all_sprites = arcade.SpriteList()  # 全てのスプライトリスト
         self.bullets_list = arcade.SpriteList() # 弾丸リストの作成
         self.paused = False
+        
+        self.height = height
+        self.width = width
+    
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.SKY_BLUE)
 
     def setup(self):
-        arcade.set_background_color(arcade.color.SKY_BLUE)
         self.player = arcade.Sprite("images/airplane.png", SCALING)
         self.player.center_y = self.height / 2
         self.player.left = 10 # スプライトの左端をウィンドウの左端から数ピクセル離して配置することで、スプライトの x 位置を設定
         self.all_sprites.append(self.player)
         
-        # Spawn a new enemy every 0.25 seconds
+        # 敵が出てくるスパン
         arcade.schedule(self.add_enemy, 0.25)
-        # Spawn a new cloud every second
+        # 雲が出てくるスパン
         arcade.schedule(self.add_cloud, 0.5)
     
-    # 敵を表示
+    # 敵ユニットの作成
     def add_enemy(self, delta_time: float):
-        """Adds a new enemy to the screen
-            Arguments:
-                delta_time {float} -- How much time has passed since the last call
-            
-            左下が(x,y) = (0,0)であることを考慮
-            
-            機能）
-            ウィンドウの右側のランダムな場所に表示されます。
-            彼らは一直線に左へ移動します。
-            画面から外れると消えてしまいます。
-            
-            このenemyを表示させるためには、updateを行う必要がある。
-            
-            enemy.pngが表示されない原因） 2024/10/22
-            arcade.run() を呼び出すと、ゲームループが開始されます。
-            このループは、描画 (on_draw()) と更新 (on_update()) を繰り返します。
-            元のコードでは on_update() が定義されていなかったため、arcade.run() 内で on_draw() だけが繰り返し実行されていました。
-            そのため、敵の update() メソッドが実行されず、敵が移動せず、画面に表示されなかったと考えられます。
-        """
-        # 敵ユニットの作成
-        # enemy = arcade.Sprite("images/enemy.png", SCALING)
         enemy = FlyingSprite("images/enemy.png", SCALING*2)
 
         # 位置をランダムな高さに設定し、画面右外へ
-        enemy.left = random.randint(self.width, self.width + 80) # enemy.center_xと同じ意味
-        enemy.top = random.randint(10, self.height - 10) # enemy.center_yと同じ意味
+        enemy.left = random.randint(self.width, self.width + 80)
+        enemy.top = random.randint(10, self.height - 10)
+        enemy.velocity = (random.randint(-7, -3), random.randint(-1, 1)) # 敵の速度
         
-        # speed
-        # y座標は変えずにx座標を変えている。-20にしているのは右(X座標Max)から左(X座標Min)に流れるため
-        # enemy.velocity = (random.randint(-20, -5), 0)
-        
-        # アレンジ
-        enemy.velocity = (random.randint(-7, -3), random.randint(-1, 1)) 
-        
-        # Add it to the enemies list
         self.enemies_list.append(enemy)
         self.all_sprites.append(enemy)
     
+    # 雲の作成
     def add_cloud(self, delta_time: float):
-        """
-        add_enemyと同じ要領で作成
-        """
         # cloudの定義
         cloud = FlyingSprite("images/cloud.png", SCALING*2)
         cloud.center_x = random.randint(self.width-80, self.width)
         cloud.center_y = random.randint(self.height-500, self.height)
         cloud.velocity = (random.randint(-3, -2), 0)
         
-        # add list
         self.clouds_list.append(cloud)
         self.all_sprites.append(cloud)
     
+    # 弾丸の作成
     def shoot_bullet(self):
         """弾丸を発射する"""
         bullet = Bullet("images/bullet.png", SCALING)
@@ -220,10 +168,11 @@ class SpaceShoter(arcade.Window):
         if self.paused:
             return
         
-        # 敵と衝突したら、ゲームを終了する
+        # 敵と衝突したら、ゲームオーバー画面に移動
         if self.player.collides_with_list(self.enemies_list):
             print("敵と衝突しました。")
-            arcade.close_window()
+            game_over_view = GameOverView()
+            self.window.show_view(game_over_view)
         
         # bulletで敵を倒したら、敵とbulletが消える
         for bullet in self.bullets_list:
@@ -250,10 +199,44 @@ class SpaceShoter(arcade.Window):
         arcade.start_render()  # 描画を開始
         self.all_sprites.draw()  # 全てのスプライトを描画
 
+class GameOverView(arcade.View):
+    def __init__(self):
+        super().__init__()
+    
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.SKY_BLUE)
+    
+    def on_draw(self):
+        self.clear()
+        """
+        "Game over"を画面に描画します。
+        """
+        arcade.draw_text("Game Over", SCREEN_WIDTH/2, SCREEN_WIDTH/2, arcade.color.WHITE, 54)
+        arcade.draw_text("press R/r restart", SCREEN_WIDTH/2, 300, arcade.color.WHITE, 24)
+        arcade.draw_text("press Q/q game close", SCREEN_WIDTH/2, 250, arcade.color.WHITE, 20)
+
+    def on_key_release(self, symbol:int, modifiers:int):
+        """
+        R/rキーを押すとゲーム再開
+        Q/qキーを押すと画面が閉じる
+        """
+        if symbol == arcade.key.Q:
+            print("predd Q key")
+            print("ゲーム終了")
+            arcade.exit()
+
+        if symbol == arcade.key.R:
+            print("press R key")
+            print("ゲーム再開")
+            game_view = Shooter()
+            game_view.setup()
+            self.window.show_view(game_view)
+
 def main():
-    ss = SpaceShoter(width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE)
-    ss.setup() # setupが実行されないと、オブジェクトも何も定義されない状態になるため、この処理は必要
-    arcade.run() # on_draw()とon_update()を繰り返す関数。画面に表示されていなかったら、updateを疑う
+    window = arcade.Window(width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE)
+    start_view = StartView()
+    window.show_view(start_view)
+    arcade.run()
 
 if __name__ == "__main__":
     main()
