@@ -50,7 +50,6 @@
 ```
 SIMPLESHOOTER/
 ├── game/
-│   ├── __pycache__/
 │   ├── components.py
 │   └── images/
 │       ├── airplane.png
@@ -61,7 +60,6 @@ SIMPLESHOOTER/
 ├── README.md
 ├── requirements.txt
 └── utils/
-    ├── __pycache__/
     └── config.py
 ```
 
