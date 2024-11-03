@@ -164,4 +164,3 @@ cython_debug/
 
 practice/
 test.py
-images/*.png

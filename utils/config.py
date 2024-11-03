@@ -17,12 +17,20 @@ config = {
                 , "クリックしてゲーム開始"
             ]
             , "color" : arcade.color.WHITE
-        },
-        "game_over_screen": {
+        }
+        , "score": [
+            "alive time:"
+            , "hit enemy:"
+            ]
+        , "game_over_screen": {
             "title": "Game Over"
             ,"instructions": [
                 "R/rキーを押してゲームを再開します"
                 ,"Q/qキーを押してゲームを終了します"
+                , "" # 改行
+                , "summary"
+                , "" # 生存時間を入れる
+                , "" # 敵を倒した数を入れる
             ]
             , "color": arcade.color.WHITE
             

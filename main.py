@@ -13,6 +13,7 @@ SCALING = 0.1
 FONT_ENGLISH = config["font_name"]["en"]
 FONT_JAPANESE = config["font_name"]["ja"]
 START_SCREEN_TEXTS = config["texts"]["start_screen"]
+SCORE_TEXTS = config["texts"]["score"]
 GAME_OVER_TEXTS = config["texts"]["game_over_screen"]
 
 
@@ -70,7 +71,14 @@ class Shooter(arcade.View):
         arcade.set_background_color(arcade.color.SKY_BLUE)
 
     def setup(self):
-        self.player = arcade.Sprite("images/airplane.png", SCALING)
+        # 経過時間の設定
+        self.time_taken = 0
+        
+        # スコア
+        self.score = 0
+        
+        # プレイヤーが操作するユニットの設定
+        self.player = arcade.Sprite("images/airplane.png", SCALING*1.3)
         self.player.center_y = self.height / 2
         self.player.left = 10 # スプライトの左端をウィンドウの左端から数ピクセル離して配置することで、スプライトの x 位置を設定
         self.all_sprites.append(self.player)
@@ -86,7 +94,7 @@ class Shooter(arcade.View):
         # 位置をランダムな高さに設定し、画面右外へ
         enemy.left = random.randint(self.width, self.width + 80)
         enemy.top = random.randint(10, self.height - 10)
-        enemy.velocity = (random.randint(-7, -3), random.randint(-1, 1)) # 敵の速度
+        enemy.velocity = (random.randint(-10, -5), random.randint(-1, 2)) # 敵の速度
         
         self.enemies_list.append(enemy)
         self.all_sprites.append(enemy)
@@ -106,8 +114,10 @@ class Shooter(arcade.View):
     def shoot_bullet(self):
         """弾丸を発射する"""
         bullet = Bullet("images/bullet.png", SCALING)
-        bullet.center_y = self.player.center_y # playerのY座標の位置から射出される
-        bullet.velocity = (10, 0)
+        # playerの座標の位置から射出される
+        bullet.center_x = self.player.center_x
+        bullet.center_y = self.player.center_y
+        bullet.velocity = (15, 0)
         
         # add list
         self.bullets_list.append(bullet)
@@ -172,6 +182,7 @@ class Shooter(arcade.View):
             self.player.change_x = 0
         
     def on_update(self, delta_time):
+        self.time_taken += delta_time
         """
         Spliteオブジェクトを更新する
         ただし、一時停止している場合は、何もしない
@@ -187,6 +198,8 @@ class Shooter(arcade.View):
         if self.player.collides_with_list(self.enemies_list):
             print("敵と衝突しました。")
             game_over_view = GameOverView()
+            game_over_view.time_taken = self.time_taken
+            game_over_view.score = self.score
             self.window.show_view(game_over_view)
         
         # bulletで敵を倒したら、敵とbulletが消える
@@ -196,6 +209,9 @@ class Shooter(arcade.View):
             for enemy in hit_enemies:
                 bullet.remove_from_sprite_lists()
                 enemy.remove_from_sprite_lists()
+                
+                # スコアの加算
+                self.score += 1
         
         self.all_sprites.update()
         
@@ -213,10 +229,23 @@ class Shooter(arcade.View):
         """ゲーム画面を描画する"""
         arcade.start_render()  # 描画を開始
         self.all_sprites.draw()  # 全てのスプライトを描画
+        
+        # スコアを画面に表示
+        y_position = 60
+        for line in zip(SCORE_TEXTS, (f"{self.time_taken: .2f}", self.score)):
+            arcade.draw_text(line[0] + " " + f"{line[1]}"
+                            , 10
+                            , y_position
+                            , START_SCREEN_TEXTS["color"]
+                            , font_size=10
+                            , font_name=FONT_ENGLISH)
+            y_position -= 30
 
 class GameOverView(arcade.View):
     def __init__(self):
         super().__init__()
+        self.time_taken = 0
+        self.score = 0
     
     def on_show_view(self):
         arcade.set_background_color(arcade.color.SKY_BLUE)
@@ -235,14 +264,28 @@ class GameOverView(arcade.View):
                 , font_name = FONT_ENGLISH)
 
         y_position = SCREEN_HEIGHT / 2 - 50
-        for line in GAME_OVER_TEXTS["instructions"]:
+        for i, line in enumerate(GAME_OVER_TEXTS["instructions"]):
+            if line == "summary":
+                font_name = FONT_ENGLISH
+                font_size = 24
+            elif i == 4:
+                line = f"{self.time_taken: .2f} alive time"
+                font_name = FONT_ENGLISH
+                font_size = 16
+            elif i == 5:
+                line = f"{self.score} hits"
+                font_name = FONT_ENGLISH
+                font_size = 16
+            else:
+                font_name = FONT_JAPANESE
+                font_size = 24
             arcade.draw_text(line
                             , SCREEN_WIDTH / 2
                             , y_position
                             , GAME_OVER_TEXTS["color"]
-                            , 24
+                            , font_size
                             , anchor_x="center"
-                            , font_name=FONT_JAPANESE)
+                            , font_name=font_name)
             y_position -= 40
 
     def on_key_release(self, symbol:int, modifiers:int):
