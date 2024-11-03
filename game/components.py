@@ -2,9 +2,6 @@ import arcade
 
 # 初期変数
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Simpole game"
-SCALING = 0.1
 
 # 弾丸用のスプライト
 class Bullet(arcade.Sprite):
