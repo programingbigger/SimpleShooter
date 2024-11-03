@@ -12,6 +12,9 @@ SCREEN_TITLE = "SimpoleShooter"
 SCALING = 0.1
 FONT_ENGLISH = config["font_name"]["en"]
 FONT_JAPANESE = config["font_name"]["ja"]
+START_SCREEN_TEXTS = config["texts"]["start_screen"]
+GAME_OVER_TEXTS = config["texts"]["game_over_screen"]
+
 
 class StartView(arcade.View):
     def on_show_view(self):
@@ -19,27 +22,20 @@ class StartView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        arcade.draw_text("Shooters"
+        arcade.draw_text(START_SCREEN_TEXTS["title"]
                         , SCREEN_WIDTH / 2
                         , SCREEN_HEIGHT / 2 + 100
-                        ,arcade.color.BLACK
+                        , START_SCREEN_TEXTS["color"]
                         , font_size=50
                         , anchor_x="center"
                         , font_name = FONT_ENGLISH)
-# 説明文を描画 (複数行対応)
-        instructions = [
-            "Q: ゲームを終了します",
-            "P: ゲームを一時停止/一時停止解除します",
-            "I/J/K/L または 矢印キー: 上、左、下、右に移動します",
-            "SPACE: 弾丸を発射します",
-            "クリックしてゲーム開始"
-        ]
+# 説明文を描画 (複数行対応
         y_position = SCREEN_HEIGHT / 2 - 30
-        for line in instructions:
+        for line in START_SCREEN_TEXTS["instructions"]:
             arcade.draw_text(line
                             , SCREEN_WIDTH / 2
                             , y_position
-                            , arcade.color.BLACK
+                            , START_SCREEN_TEXTS["color"]
                             , font_size=15
                             , anchor_x="center"
                             , font_name=FONT_JAPANESE)
@@ -230,24 +226,20 @@ class GameOverView(arcade.View):
         """
         "Game over"を画面に描画します。
         """
-        arcade.draw_text("Game Over"
+        arcade.draw_text(GAME_OVER_TEXTS["title"]
                 , SCREEN_WIDTH / 2
                 , SCREEN_HEIGHT / 2 + 100
-                ,arcade.color.BLACK
+                , GAME_OVER_TEXTS["color"]
                 , font_size=50
                 , anchor_x="center"
                 , font_name = FONT_ENGLISH)
-        
-        instructions = [
-            "R/rキーを押してゲームを再開します",
-            "Q/qキーを押してゲームを終了します",
-        ]
+
         y_position = SCREEN_HEIGHT / 2 - 50
-        for line in instructions:
+        for line in GAME_OVER_TEXTS["instructions"]:
             arcade.draw_text(line
                             , SCREEN_WIDTH / 2
                             , y_position
-                            , arcade.color.WHITE
+                            , GAME_OVER_TEXTS["color"]
                             , 24
                             , anchor_x="center"
                             , font_name=FONT_JAPANESE)
