@@ -23,7 +23,6 @@
    ```bash
    git clone https://github.com/programingbigger/SimpleShooter.git
    ```
-ss
    ```
    cd SIMPLESHOOTER
    ```
